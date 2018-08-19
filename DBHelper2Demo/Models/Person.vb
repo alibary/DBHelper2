@@ -1,7 +1,9 @@
 ﻿Imports JiangNong.DBHelper2
 
-<TableMapping(Table:="Person.Person")>
-Public Class Person
+''' <summary>
+''' 定义映射到数据库的类
+''' </summary>
+<TableMapping(Table:="Person.Person")> Public Class Person
     Inherits BusinessEntity
     <ColumnMapping(PrimaryKey:=True, Identity:=False)> Public Overloads Property BusinessEntityID As Integer
 
@@ -15,6 +17,4 @@ Public Class Person
     Public Property EmailPromotion As Integer
     Public Property AdditionalContactInfo As String
     Public Property Demographics As String
-
-
 End Class
