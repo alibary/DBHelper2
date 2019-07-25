@@ -12,6 +12,12 @@ Public NotInheritable Class ColumnMapping
     Public Property Column() As String = String.Empty
 
     ''' <summary>
+    ''' 数据库中列的类型
+    ''' </summary>
+    ''' <returns></returns>
+    Public Property ColumnType As EnumColumnType = EnumColumnType.Object
+
+    ''' <summary>
     ''' 是否要映射
     ''' </summary>
     ''' <value></value>
@@ -45,3 +51,17 @@ Public Enum EnumMapping
     Both = 3
 End Enum
 
+Public Enum EnumColumnType
+    [Object]
+    [Boolean]
+    [String]
+    [Date]
+    [Long]
+    [Integer]
+    [Short]
+    [Single]
+    [Double]
+    [Decimal]
+    BoolToStr
+    BoolToInt
+End Enum

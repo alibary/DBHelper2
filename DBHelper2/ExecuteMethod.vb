@@ -458,10 +458,12 @@ Partial Class DBHelper
     ''' <remarks></remarks>
     Public Function ReadList(Of T)(cmdType As CommandType, cmdText As String, parmNames As String(), parmValues As Object(), startRecord As Integer, maxRecords As Integer) As List(Of T)
         Dim l As New List(Of T)
-        Dim i As Integer = 0
+        Dim p As Object = Nothing
+        Dim tp As Type = GetType(T)
+
         Dim reader As DbDataReader = ExecuteReader(cmdType, cmdText, parmNames, parmValues)
-        Dim pojo As T = Activator.CreateInstance(Of T)()
-        Dim map As Dictionary(Of String, PropertyInfo) = GetMappingProperty(reader, pojo, Nothing)
+        Dim map As Dictionary(Of String, PropertyInfo) = getMappingProperty(reader, tp, Nothing)
+        Dim i As Integer = 0
         Do While reader.Read
             i += 1
             If i <= startRecord Then
@@ -470,10 +472,13 @@ Partial Class DBHelper
             If maxRecords > 0 AndAlso i > startRecord + maxRecords Then
                 Exit Do
             End If
-
-            Dim p As T = Activator.CreateInstance(Of T)()
-            SetPojoValue(reader, p, map)
-            l.Add(p)
+            If tp Is GetType(String) Then
+                p = String.Empty
+            Else
+                p = Activator.CreateInstance(Of T)()
+            End If
+            setPojoValue(reader, p, map)
+            l.Add(CType(p, T))
         Loop
         reader.Close()
         reader = Nothing
@@ -530,7 +535,7 @@ Partial Class DBHelper
         End If
 
         Dim tp As Type = pojo.GetType
-        If tp.IsPrimitive OrElse tp.IsValueType OrElse tp.IsEnum OrElse tp.IsInterface Then
+        If tp.IsPrimitive OrElse tp.IsValueType OrElse tp.IsEnum OrElse tp.IsInterface OrElse tp Is GetType(String) Then
             Return 0
         End If
 
@@ -582,15 +587,20 @@ Partial Class DBHelper
     ''' <returns>读取的对象</returns>
     ''' <remarks></remarks>
     Public Function ReadEntity(Of T)(cmdType As CommandType, cmdText As String, parmNames As String(), parmValues As Object()) As T
-        Dim p As T = Nothing
+        Dim p As Object = Nothing
+        Dim tp As Type = GetType(T)
         Dim reader As DbDataReader = ExecuteReader(cmdType, cmdText, parmNames, parmValues)
         If reader.Read Then
-            p = Activator.CreateInstance(Of T)()
+            If tp Is GetType(String) Then
+                p = String.Empty
+            Else
+                p = Activator.CreateInstance(Of T)()
+            End If
             Load(reader, p)
         End If
         reader.Close()
         reader = Nothing
-        Return p
+        Return CType(p, T)
     End Function
 
     ''' <summary>
@@ -627,7 +637,7 @@ Partial Class DBHelper
     ''' <param name="pojo">要读取数据的对象</param>
     ''' <returns>读取是否成功</returns>
     ''' <remarks>忽略数据源中不存在的列</remarks>
-    Public Function Load(reader As DbDataReader, pojo As Object) As Boolean
+    Public Function Load(reader As DbDataReader, ByRef pojo As Object) As Boolean
         Return Load(reader, pojo, Nothing)
     End Function
 
@@ -640,7 +650,7 @@ Partial Class DBHelper
     ''' <param name="cols">指定读取的列,可以为空</param>
     ''' <returns>读取是否成功</returns>
     ''' <remarks>忽略数据源中不存在的列</remarks>
-    Public Function Load(reader As DbDataReader, pojo As Object, cols As String()) As Boolean
+    Public Function Load(reader As DbDataReader, ByRef pojo As Object, cols As String()) As Boolean
         If pojo Is Nothing Then
             Throw New ArgumentException("装入对象失败：POJO对象不能为空")
         End If
@@ -650,8 +660,8 @@ Partial Class DBHelper
         If reader.IsClosed OrElse reader.HasRows = False Then
             Return False
         End If
-        Dim map As Dictionary(Of String, PropertyInfo) = GetMappingProperty(reader, pojo, cols)
-        SetPojoValue(reader, pojo, map)
+        Dim map As Dictionary(Of String, PropertyInfo) = getMappingProperty(reader, pojo.GetType, cols)
+        setPojoValue(reader, pojo, map)
         Return True
     End Function
 
@@ -663,7 +673,7 @@ Partial Class DBHelper
     ''' <param name="pojo">要读取数据的对象</param>
     ''' <returns>读取是否成功</returns>
     ''' <remarks></remarks>
-    Public Function Load(pojo As Object) As Boolean
+    Public Function Load(ByRef pojo As Object) As Boolean
         Return Load(pojo, Nothing, Nothing)
     End Function
 
@@ -674,7 +684,7 @@ Partial Class DBHelper
     ''' <param name="keys">指定主键，可以为空</param>
     ''' <returns>读取是否成功</returns>
     ''' <remarks></remarks>
-    Public Function Load(pojo As Object, keys As String()) As Boolean
+    Public Function Load(ByRef pojo As Object, keys As String()) As Boolean
         Return Load(pojo, keys, Nothing)
     End Function
 
@@ -686,11 +696,11 @@ Partial Class DBHelper
     ''' <param name="cols">指定读取的列，可以为空</param>
     ''' <returns>读取是否成功</returns>
     ''' <remarks></remarks>
-    Public Function Load(pojo As Object, keys As String(), cols As String()) As Boolean
+    Public Function Load(ByRef pojo As Object, keys As String(), cols As String()) As Boolean
         '映射表和字段
         Dim table As TableEntity = GetMappingTable(pojo, keys, cols)
         Dim cmd As CommandEntity = BuildSelectCommandText(table)
-        Dim dr As DbDataReader = PrepareCommand(cmd, table.Columns).ExecuteReader(CommandBehavior.SingleRow)
+        Dim dr As DbDataReader = prepareCommand(cmd, table.Columns).ExecuteReader(CommandBehavior.SingleRow)
         Dim Result As Boolean = False
         If dr.Read Then
             Result = Load(dr, pojo, cols)
@@ -734,8 +744,8 @@ Partial Class DBHelper
         If pojo Is Nothing Then
             Return 0
         End If
-        Dim t As Type = pojo.GetType
-        If t.IsPrimitive OrElse t.IsValueType OrElse t.IsEnum OrElse t.IsInterface Then
+        Dim tp As Type = pojo.GetType
+        If tp.IsPrimitive OrElse tp.IsValueType OrElse tp.IsEnum OrElse tp.IsInterface OrElse tp Is GetType(String) Then
             Return 0
         End If
 

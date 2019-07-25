@@ -17,20 +17,22 @@ Public NotInheritable Class DBFactory
     End Sub
 #Region "数据库连接串"
     ''' <summary>
+    ''' 允许用户初始化时修改此连接串
+    ''' </summary>
+    Private Shared _defaultConnectionStringName As String = "ConnectionString"
+    ''' <summary>
     ''' 默认数据库连接串名称
-    ''' 可在appSettings的DefaultConnection来定义，默认值是ConnectionString
     ''' </summary>
     ''' <value></value>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Shared ReadOnly Property DefaultConnectionStringName As String
+    Public Shared Property DefaultConnectionStringName As String
         Get
-            Static ConnectionStringName As String = ConfigurationManager.AppSettings("DefaultConnection")
-            If String.IsNullOrEmpty(ConnectionStringName) Then
-                ConnectionStringName = "ConnectionString"
-            End If
-            Return ConnectionStringName
+            Return _defaultConnectionStringName
         End Get
+        Set(value As String)
+            _defaultConnectionStringName = value
+        End Set
     End Property
 
     'Private Shared Function GetConnectionSettings(ConnectionStringName As String) As ConnectionStringSettings
@@ -66,7 +68,7 @@ Public NotInheritable Class DBFactory
     ''' <remarks></remarks>
     Public Shared ReadOnly Property ConnectionString() As String
         Get
-            Return ConnectionString(defaultConnectionStringName)
+            Return ConnectionString(_defaultConnectionStringName)
         End Get
     End Property
 #End Region
@@ -121,7 +123,7 @@ Public NotInheritable Class DBFactory
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Shared Function CreateDBHelper() As DBHelper
-        Return CreateDBHelper(DefaultConnectionStringName)
+        Return CreateDBHelper(_defaultConnectionStringName)
     End Function
 #End Region
 

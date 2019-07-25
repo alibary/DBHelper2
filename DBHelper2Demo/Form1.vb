@@ -17,11 +17,13 @@ Public Class Form1
         txtResult.AppendText(message & vbCrLf)
     End Sub
     Private Sub appendText(p As Person)
-        appendText(String.Format("First Name:{0}, Last Name:{1}, Person Type:{2}, rowguid:{3}, ModifiedDate:{4:yyyy-MM-dd}.", p.FirstName, p.LastName, p.PersonType, p.rowguid, p.ModifiedDate))
+        appendText(String.Format("First Name:{0}, Last Name:{1}, Person Type:{2}, rowguid:{3}, ModifiedDate:{4:yyyy-MM-dd}.",
+                                 p.FirstName, p.LastName, p.PersonType, p.rowguid, p.ModifiedDate))
     End Sub
 
     Private Sub appendText(r As DataRow)
-        appendText(String.Format("First Name:{0}, Last Name:{1}, Person Type:{2}, rowguid:{3}, ModifiedDate:{4:yyyy-MM-dd}.", r("FirstName"), r("LastName"), r("PersonType"), r("rowguid"), r("ModifiedDate")))
+        appendText(String.Format("First Name:{0}, Last Name:{1}, Person Type:{2}, rowguid:{3}, ModifiedDate:{4:yyyy-MM-dd}.",
+                                 r("FirstName"), r("LastName"), r("PersonType"), r("rowguid"), r("ModifiedDate")))
     End Sub
 
 #End Region
@@ -177,11 +179,33 @@ Public Class Form1
             '将SQL的查询结果直接转换为对象
             Dim p As Person = db.ReadEntity(Of Person)("select * from person.person where lastname=@lastname and firstname=@firstname",
                                                        {"@lastname", "@firstname"},
-                                                       {"Jiang", "Cougar"})
+                                                       {"Raheem", "Michael"})
             If p IsNot Nothing Then
                 appendText(p)
             Else
                 appendText("Entity is not found.")
+            End If
+
+            '可以读取简单类型数据 2019.7.24
+            Dim n As String = db.ReadEntity(Of String)("select PersonType from person.person where lastname=@lastname and firstname=@firstname",
+                                                       {"@lastname", "@firstname"},
+                                                       {"Raheem", "Michael"})
+
+            If n IsNot Nothing Then
+                appendText("PersonType:" & n)
+            Else
+                appendText("PersonType is not found.")
+            End If
+
+            '读取简单类型数据Integer
+            Dim i As Integer = db.ReadEntity(Of String)("select BusinessEntityID from person.person where lastname=@lastname and firstname=@firstname",
+                                                       {"@lastname", "@firstname"},
+                                                       {"Raheem", "Michael"})
+
+            If i <> 0 Then
+                appendText("BusinessEntityID:" & i)
+            Else
+                appendText("BusinessEntityID is not found.")
             End If
         End Using
     End Sub

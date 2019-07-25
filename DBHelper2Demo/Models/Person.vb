@@ -3,10 +3,9 @@
 ''' <summary>
 ''' 定义映射到数据库的类
 ''' </summary>
-<TableMapping(Table:="Person.Person")> Public Class Person
+<TableMapping(Table:="Person.Person", Keys:={"BusinessEntityID"})> Public Class Person
     Inherits BusinessEntity
-    <ColumnMapping(PrimaryKey:=True, Identity:=False)> Public Overloads Property BusinessEntityID As Integer
-
+    <ColumnMapping(Identity:=False)> Public Overloads Property BusinessEntityID As Integer
     Public Property PersonType As String
     Public Property NameStyle As Boolean
     Public Property Title As String
